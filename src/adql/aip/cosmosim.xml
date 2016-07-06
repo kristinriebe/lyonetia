@@ -1,0 +1,307 @@
+<?xml version="1.0"?>
+<!--+
+    |
+    | Copyright (c) 2016, AIP E-Science
+    | All rights reserved.
+    |
+    | This program is free software: you can redistribute it and/or modify
+    | it under the terms of the GNU General Public License as published by
+    | the Free Software Foundation, either version 3 of the License, or
+    | (at your option) any later version.
+    |
+    | This program is distributed in the hope that it will be useful,
+    | but WITHOUT ANY WARRANTY; without even the implied warranty of
+    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    | GNU General Public License for more details.
+    |
+    | You should have received a copy of the GNU General Public License
+    | along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    |
+    +-->
+<queries>
+
+    <!--+
+        | Contact details of who to talk to about this set of queries.
+        +--> 
+    <contact>
+        <name>Kristin Riebe</name>
+        <url>https://github.com/kristinriebe</url>
+    </contact>
+    <!--+
+        | The publisher of this set of queries.
+        +--> 
+    <publisher>
+        <name>AIP</name>
+        <url>http://www.aip.de/</url>
+    </publisher>
+
+    <query uuid='f31bfe5f-122d-4659-8cfb-f9b981ec8b5c'>
+
+        <!--+
+            | A URL that can be used to identify the target dataset.
+            | Use http://wwww.example.org/ for examples.
+            +--> 
+        <dataset>http://www.cosmosim.org/</dataset>
+        <description>
+            <![CDATA[
+            Get the mass function for a halo catalogue at a given 
+            snapshot number of a cosmological simulation
+            ]]>
+        <description>
+
+        <adql version='adql-2.1' valid='true'>
+            <![CDATA[
+            SELECT
+                0.25*(ROUND(LOG10(mass)/0.25)) AS logmass,
+                COUNT(*) AS num
+            FROM
+                mdr1.fof
+            WHERE
+                snapnum=85
+            GROUP BY
+                logmass
+            ORDER BY
+                logmass
+            ]]>
+        </adql>
+
+        <target>
+            <tap>http://gavo.aip.de/tap</tap>
+            <vosi>http://gavo.aip.de/__system__/tap/run/tableMetadata</vosi>
+        <target>
+
+        <!--+
+            | Details of the expected results.
+            +--> 
+        <expected>
+            <rows>
+                <count>18</count>
+            </rows>
+
+            <columns>
+                <column>
+                    <name>logmass</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>float</type>
+                </column>
+                <column>
+                    <name>num</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>integer</type>
+                </column>
+            </columns>
+        </expected>
+    </query>
+
+    <query uuid='2ded3d8c-f165-4695-9e59-b808f60519f2'>
+
+        <!--+
+            | A URL that can be used to identify the target dataset.
+            | Use http://wwww.example.org/ for examples.
+            +--> 
+        <dataset>http://www.cosmosim.org/</dataset>
+        <description>
+            <![CDATA[
+            Get a random sample of massive dark matter objects
+            from Bolshoi's FOF catalogue; uses RAND() as 
+            random number generator, though the built-in functions are 
+            usually not good enough for "true" statistics on large numbers.
+            A "TOP 10" could be added to ensure that the query runs quickly
+            and to always get the same row count. The actual number depends
+            on the random numbers.
+            In reality, queries like this would be run on particles-tables with 
+            1024^3, 2048^3 or more rows.
+            ]]>
+        <description>
+
+        <adql version='adql-2.1' valid='true'>
+            <![CDATA[
+            SELECT
+                x,
+                y,
+                z,
+                mass
+            FROM
+                bolshoi.fof
+            WHERE
+                snapnum=416
+            AND
+                mass >= 1.e10
+            AND
+                RAND() < 0.001
+            ORDER BY
+                mass DESC
+            ]]>
+        </adql>
+
+        <target>
+            <tap>http://gavo.aip.de/tap</tap>
+            <vosi>http://gavo.aip.de/__system__/tap/run/tableMetadata</vosi>
+        <target>
+
+        <!--+
+            | Details of the expected results.
+            +--> 
+        <expected>
+            <rows>
+                <count>around 300</count>
+            </rows>
+
+            <columns>
+                <column>
+                    <name>x</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+                <column>
+                    <name>y</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+                <column>
+                    <name>z</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+                <column>
+                    <name>mass</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+            </columns>
+        </expected>
+    </query>
+
+    <query uuid='64697ea2-a702-47a1-89a8-319f62894e16'>
+
+        <!--+
+            | A URL that can be used to identify the target dataset.
+            | Use http://wwww.example.org/ for examples.
+            +--> 
+        <dataset>http://www.cosmosim.org/</dataset>
+        <description>
+            <![CDATA[
+            Get list of progenitors of a dark matter cluster;
+            uses "size", which is a reserved keyword in Postgres, 
+            but not in MySQL. Users usually give a range of fofId-numbers 
+            in the innermost SELECT-statement.            
+            ]]>
+        <description>
+
+        <adql version='adql-2.1' valid='true'>
+            <![CDATA[
+            SELECT
+                p.fofTreeId,
+                p.treeSnapnum,
+                p.x,
+                p.y,
+                p.z,
+                p.mass,
+                p."size"
+            FROM
+                mdr1.fofmtree AS p,
+                (
+                    SELECT 
+                        fofTreeId,
+                        lastProgId
+                    FROM
+                        mdr1.fofmtree
+                    WHERE
+                        fofId = 85000000001
+                ) AS m
+            WHERE
+                p.mass > 1.e13
+            AND
+                p.fofTreeId
+                    BETWEEN 
+                        m.fofTreeId
+                    AND
+                        m.lastProgId
+            ORDER BY
+                treeSnapnum
+            ]]>
+        </adql>
+
+        <target>
+            <tap>http://gavo.aip.de/tap</tap>
+            <vosi>http://gavo.aip.de/__system__/tap/run/tableMetadata</vosi>
+        <target>
+
+        <!--+
+            | Details of the expected results.
+            +-->
+        <expected>
+            <rows>
+                <count>295</count>
+            </rows>
+
+            <columns>
+                <column>
+                    <name>fofTreeId</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>long</type>
+                </column>
+                <column>
+                    <name>treeSnapnum</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>short</type>
+                </column>
+                <column>
+                    <name>x</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+                <column>
+                    <name>y</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+                <column>
+                    <name>z</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+                <column>
+                    <name>mass</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+                <column>
+                    <name>size</name>
+                    <description></description>
+                    <unit></unit>
+                    <ucd></ucd>
+                    <type>double</type>
+                </column>
+            </columns>
+        </expected>
+    </query>
+
+</queries>
+
+
+
